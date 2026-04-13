@@ -130,9 +130,9 @@ LIMIT 1;
 SELECT j.pais, CONCAT(j.nombre, " ", j.apellido) as JUGADOR
 FROM jugador j
 WHERE (j.pais, j.fechaNacimiento) IN (
-	SELECT j.pais, MAX(j.fechaNacimiento)
-    FROM jugador j
-    GROUP BY j.pais );
+	SELECT j1.pais, MAX(j1.fechaNacimiento)
+    FROM jugador j1
+    GROUP BY j1.pais );
 
 
 
