@@ -247,27 +247,40 @@ SELECT PRODUCTO_FECHAS("2004-08-20", "2004-11-28", "S18_2949");
 #13)
 -- Crear una SF que reciba el número de empleado y devuelva la cantidad de clientes que atiende.
 delimiter //
-CREATE FUNCTION ...() returns ... deterministic
+CREATE FUNCTION CLIENTES_ATENDIDOS(nEmpleado int) returns int deterministic
 begin
-
-
-
+	declare cantClientes int default 0;
+    SELECT COUNT(*) INTO cantClientes
+    FROM customers c
+    JOIN employees e ON c.salesRepEmployeeNumber = e.employeeNumber
+    WHERE e.employeeNumber = nEmpleado;
+    return cantClientes;
 end//
 delimiter ;
 
-SELECT ...();
+SELECT CLIENTES_ATENDIDOS(1504);
 
 
 
 #14)
 -- Crear una SF que reciba un número de empleado y devuelva el apellido del empleado al que reporta.
 delimiter //
-CREATE FUNCTION ...() returns ... deterministic
+CREATE FUNCTION EMPLEADO_REPORTA(nEmpleado int) returns varchar(30) deterministic
 begin
+	declare apellidoR varchar(30);
+    
+    SELECT j.lastName INTO apellidoR
+    FROM employees e
+    JOIN employees j ON j.employeeNumber = e.reportsTo
+    WHERE e.employeeNumber = nEmpleado;
 
-
-
+	if apellidoR IS NULL then
+		return 'No se reporta a nadie';
+	else
+		return apellidoR;
+	end if;
 end//
 delimiter ;
 
-SELECT ...();
+SELECT EMPLEADO_REPORTA(1504);
+SELECT EMPLEADO_REPORTA(1002);
