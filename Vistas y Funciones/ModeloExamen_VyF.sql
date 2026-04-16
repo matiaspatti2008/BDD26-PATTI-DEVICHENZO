@@ -114,4 +114,32 @@ SELECT * FROM Resumen;
 #2-
 -- Crear una vista que muestre un resumen de las ventas por mes. El resumen debe listar el nombre del modelo de auto, la cantidad de ventas,
 -- la ganancia en pesos y el día en el que se vendieron más autos de ese modelo. Utilizar la función del punto 3)
+-- 1° prueba
+SELECT MONTH(c.fecha),
+	   m.marca AS NOMBRE_MODELO,
+	   CANT_AUTOS(m.id, MONTH(c.fecha)) AS VENDIDOS,
+       SUM(c.precio) AS GANANCIA,
+FROM compra c
+JOIN auto a ON c.auto_patente = a.patente
+JOIN modelo m ON a.modelo_id = m.id
+GROUP BY c.id;
 
+
+-- 2° prueba
+SELECT m.marca,
+	CANT_AUTOS(m.id,c.fecha) AS Vendidos,
+	COUNT(a.patente) AS cantidad_ventas,
+	SUM(c.precio) AS ganacia,
+	(SELECT c2.fecha, COUNT(m2.id) FROM compra c2, auto a2, modelo m2
+		WHERE  MONTH(c2.fecha) =  MONTH(c2.fecha) 
+		AND YEAR(c2.fecha) =  YEAR(c2.fecha) 
+        and c2.auto_patente = a2.patente
+        AND a2.modelo_id = m2.id
+        and m2.id = 1
+		GROUP BY  c2.fecha
+		ORDER BY COUNT(m2.id)  DESC LIMIT 1 
+	)  as pepe
+	FROM modelo m 
+		JOIN auto a ON a.modelo_id = m.id
+		JOIN compra c ON c.auto_patente = a.patente
+	GROUP BY YEAR(c.fecha), MONTH(c.fecha) ,a.modelo_id;
