@@ -49,7 +49,18 @@ SELECT @afected_Rows AS Filas_Eliminadas;
 -- “La línea de productos fue borrada”
 -- “La línea de productos no pudo borrarse porque contiene productos asociados”.
 -- Utilizar la función del punto 4.
-
+delimiter //
+CREATE PROCEDURE ELIMINAR_PRODUCT_LINE(IN c_Prod_Line VARCHAR(256) ,OUT text_res VARCHAR(256))
+begin
+	IF (STOCK(c_Prod_Line) <> 0) THEN
+	SELECT "La línea de productos no pudo borrarse porque contiene productos asociados" INTO text_res;
+	ELSE
+		DELETE FROM productlines 
+		WHERE productLine = c_Prod_Line;
+		SELECT "La línea de productos fue borrada" INTO text_res;
+	END IF;
+end //
+delimiter ;
 
 
 #4.
