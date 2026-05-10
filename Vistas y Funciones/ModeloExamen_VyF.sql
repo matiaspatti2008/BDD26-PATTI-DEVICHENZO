@@ -124,6 +124,25 @@ JOIN auto a ON c.auto_patente = a.patente
 JOIN modelo m ON a.modelo_id = m.id
 GROUP BY c.id;
 
+-- Crear una función que reciba el modelo de un auto y un mes, y devuelva el dia que se 
+-- vendieron mas autos de ese modelo.
+delimiter //
+CREATE FUNCTION DIA(modeloAuto int, fecha date) returns int deterministic
+begin
+	declare DiaMasVendido int;
+    SELECT DAY(c.fecha) INTO DiaMasVendido
+    FROM compra c
+    JOIN auto a ON c.auto_patente = a.patente
+    WHERE a.modelo_id = modeloAuto
+    AND MONTH(c.fecha) = MONTH(fecha)
+    AND YEAR(c.fecha) = YEAR(fecha)
+    GROUP BY DAY(c.fecha)
+    ORDER BY COUNT(m.id) DESC
+    limit 1;
+    return DiaMasVendido;
+end //
+delimiter ;
+
 
 -- 2° prueba
 SELECT m.marca,
@@ -143,3 +162,14 @@ SELECT m.marca,
 		JOIN auto a ON a.modelo_id = m.id
 		JOIN compra c ON c.auto_patente = a.patente
 	GROUP BY YEAR(c.fecha), MONTH(c.fecha) ,a.modelo_id;
+    
+   -- 3° Prueba Con funcion de dia mas vendido
+   SELECT m.marca,
+	CANT_AUTOS(m.id, MONTH(c.fecha)) AS Vendidos,
+	COUNT(a.patente) AS cantidad_ventas,
+	SUM(c.precio) AS ganacia,
+	DIA(m.id, c.fecha)  AS DiaMasVenta
+	FROM modelo m 
+		JOIN auto a ON a.modelo_id = m.id
+		JOIN compra c ON c.auto_patente = a.patente
+	 GROUP BY m.marca, vendidos, DiaMasVenta;
