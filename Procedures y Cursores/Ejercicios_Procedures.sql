@@ -60,7 +60,7 @@ begin
     SELECT STOCK(linea) INTO cantProductos;
     
     IF (cantProductos = 0) THEN
-		DELETE FROM productLines
+		DELETE FROM productlines
         WHERE productLine = linea;
 		SET leyenda = "La línea de productos fue borrada";
 	ELSE
