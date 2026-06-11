@@ -4,6 +4,7 @@
 -- uno para desarrollo y finalmente un administrador de base de datos. Una vez creados,
 -- verificar que se hayan creado correctamente consultando la tabla de usuarios del sistema.
 CREATE USER analista_stock@localhost IDENTIFIED BY 'anst_loho123';
+CREATE USER analista_stock2@localhost IDENTIFIED BY 'anst_loho123';
 CREATE USER gestor_productos@localhost IDENTIFIED BY 'gepr_loho456';
 CREATE USER analista_ordenes@localhost IDENTIFIED BY 'anor_loho789';
 CREATE USER usuario_reportes@localhost IDENTIFIED BY 'usre_loho987';
@@ -27,7 +28,8 @@ CREATE ROLE 'rol_stock';
 GRANT EXECUTE ON PROCEDURE stock.actualizarStock TO 'rol_stock'; -- Estos para procedimientos
 GRANT EXECUTE ON PROCEDURE stock.reducirPrecio TO 'rol_stock';
 GRANT EXECUTE ON PROCEDURE stock.actualizarPrecioUnitario TO 'rol_stock';
-GRANT SELECT ON stock.* TO 'rol_stock'; -- Estp seria para permisos de lectura
+GRANT SELECT ON stock.* TO 'rol_stock'; -- Estp seria para permisos de lecturaS
+show grants for rol_stock; -- 
 -- --------------------
 CREATE ROLE 'rol_gestion';
 GRANT EXECUTE ON PROCEDURE classicmodels.Eliminar_Orden TO 'rol_stock'; -- Para procedimiento
@@ -63,3 +65,16 @@ GRANT EVENT ON stock.* TO 'rol_desarrollo';
 CREATE ROLE 'rol_admin';
 GRANT ALL PRIVILEGES ON classicmodels.* TO 'rol_admin';
 GRANT ALL PRIVILEGES ON stock.* TO 'rol_admin';
+
+-- --------------------------
+
+GRANT 'rol_stock' TO analista_stock@localhost;
+GRANT 'rol_gestion' TO gestor_productos@localhost;
+GRANT 'rol_reporte' TO gestor_productos@localhost;
+GRANT 'rol_desarrollo' TO gestor_productos@localhost;
+GRANT 'rol_admin' TO gestor_productos@localhost;
+
+SELECT * FROM mysql.user;
+SHOW GRANTS for analista_stock@localhost;
+SHOW GRANTS for rol_stock;
+SET GLOBAL activate_all_roles_on_login = ON;
