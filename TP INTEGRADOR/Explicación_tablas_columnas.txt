@@ -1,0 +1,89 @@
+Explicación de elección de columnas específicas para cada tabla...
+
+1. Tabla de Catálogo de Niveles
+Esta tabla parametriza los umbrales de categorización para evitar codificar reglas rígidas en la aplicación
+- nombre: Nombre del nivel ('Normal', 'Platinum', 'Gold')
+- ventas_min: Define la cantidad mínima de ventas requerida para alcanzar el nivel (0 para Normal, 6 para Platinum, 11 para Gold)
+- facturacion_min: Define el monto mínimo facturado necesario ($0 para Normal, $100.000 para Platinum, $1.000.000 para Gold)
+
+
+2. Tabla de Usuarios
+Esta tabla almacena los datos del usuario
+- nivel_usuario_id: Vincula con 'niveles_usuario'. Inicia en NULL cumpliendo la regla de que "un nuevo usuario no posee categorización alguna"
+- reputacion_actual: Almacena el cálculo porcentual actualizado (0 a 100%)
+- fecha_registro: Fecha y hora en que el usuario se da de alta en el sistema.
+
+
+3. Tabla de Transacciones
+Esta tabla almacena el cierre operativo de una Venta Directa o Subasta ganada (Funcionalidad 1, 2 y 6).
+- publicacion_id: Identifica la publicación que generó la venta
+- vendedor_id / comprador_id: Usuarios involucrados en la compra/venta
+- medio_pago_id: Opción de pago seleccionada
+- medio_envio_id: Opción de envío seleccionada
+- monto: Total transaccionado (utilizado para calcular si el usuario llega a Platinum o Gold)
+- fecha_transaccion: Momento exacto del cierre
+- es_concretada: Indicador booleano que valida si la operación se completó con éxito para sumar en el conteo de ventas y facturación
+
+
+4. Tabla de Calificaciones (Soporte para la reputación)
+Esta tabla almacena las evaluaciones mutuas post venta
+- transaccion_id: Relaciona la calificación con la operación concretada
+- usuario_evaluado_id: Identifica a quién se califica (vendedor o comprador)
+- puntaje: Valor numérico para calcular la satisfacción y alimentar la escala 0-100% de la reputación
+- comentario: Feedback cualitativo de la experiencia
+
+
+5. Catálogo de Niveles de Exposición de Publicaciones
+Esta tabla estructura los niveles de exposición
+- nombre (ENUM): Especifica las 4 variantes exigidas: 'Bronce', 'Plata', 'Oro', 'Platino'
+- prioridad_exposicion: Valor entero que permite ordenar los listados en las búsquedas según el nivel contratado
+
+
+6. Tabla de Categorías de Productos
+Esta tabla clasifica los productos dentro del catálogo
+
+
+7. Tabla de Productos
+Esta tabla contiene la información de los artículos creados por los usuarios antes de ser publicados
+- usuario_id: Asocia el producto con el usuario que lo creó
+- nombre: Nombre visible del producto en la publicación
+- descripcion: Detalle del producto
+- categoria_id: Asocia el producto a una categoría. Es opcional (NULL) para permitir eliminar una categoría que no tiene publicaciones activas sin perder la integridad del historial de productos vendidos
+
+
+8. Tabla de Publicaciones (Soporta Venta Directa y Subasta)
+Esta tabla es la entidad central que oferta un producto en la plataforma
+- vendedor_id: Relaciona la publicación con el usuario vendedor
+- producto_id: Asocia el producto ofertado. La restricción RESTRICT impide eliminar el producto mientras tenga una publicación activa o asociada
+- tipo_publicacion_id: Vincula con 'tipo_publicacion'. Define la prioridad de exposición ('Bronce', 'Plata', 'Oro', 'Platino')
+- modalidad: Controla las dos variantes exigidas: 'Venta Directa' o 'Subasta'
+- precio_base: Precio inicial de la subasta o precio fijo de compra
+- precio_actual: Monto dinámico que se incrementa en las subastas con cada oferta
+- estado: 'Activa', 'Pausada' o 'Finalizada'. Controla la posibilidad de recibir compras, ofertas o preguntas
+- fecha_inicio / fecha_fin: Registro temporal de vigencia de la publicación
+
+
+9. Tabla de Ofertas (Exclusiva para Subasta)
+Esta tabla registra el historial de pujas cuando la publicación es de tipo 'Subasta'
+- publicacion_id): Asocia la oferta a una publicación subastada
+- comprador_id: Usuario que realiza la oferta
+- monto_ofertado: Valor con el que se incrementa el monto de la subasta sin finalizar la publicación
+- fecha_oferta: Timestamp de la puja para ordenar la posición ganadora
+
+
+10. Tabla de Preguntas y Respuestas
+Esta tabla soporta el canal de comunicación en publicaciones activas
+- publicacion_id: Publicación sobre la cual se consulta
+- usuario_pregunta_id: Usuario interesado que efectúa la pregunta
+- pregunta / fecha_pregunta: Texto de la inquietud y su momento de creación
+- respuesta / fecha_respuesta: Texto ingresado exclusivamente por el vendedor (NULL hasta ser respondido)
+
+
+11. Catálogo de Medios de Pago
+Esta tabla es el catálogo de alternativas de cobro/pago
+- nombre: Opciones requeridas: 'Tarjeta de Crédito', 'Tarjeta de Débito', 'Pago Fácil', 'Rapipago'
+
+
+12. Catálogo de Medios de Envío
+Esta tabla es el catálogo de logística de entrega
+- nombre: Opciones requeridas: 'OCA', 'Correo Argentino'

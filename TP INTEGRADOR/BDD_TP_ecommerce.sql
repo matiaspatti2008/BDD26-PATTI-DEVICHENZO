@@ -1,6 +1,6 @@
 -- Tablas TP INTEGRADOR
 
--- 1. Tabla de Catálogo de Niveles (Normal, Platinum, Gold)
+-- 1. Tabla de Catálogo de Niveles
 CREATE TABLE niveles_usuario (
     nivel_id INT AUTO_INCREMENT PRIMARY KEY,
     nombre ENUM('Normal', 'Platinum', 'Gold') NOT NULL,
@@ -14,6 +14,7 @@ CREATE TABLE usuarios (
     usuario_id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
+    contasena VARCHAR(255) NOT NULL,
     nivel_usuario_id INT DEFAULT NULL,
     reputacion_actual DECIMAL(5, 2) DEFAULT 0.00,
     fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -21,7 +22,7 @@ CREATE TABLE usuarios (
 );
 
 
--- 3. Tabla de Transacciones (El núcleo para calcular ventas y facturación)
+-- 3. Tabla de Transacciones
 CREATE TABLE transacciones (
     transaccion_id INT AUTO_INCREMENT PRIMARY KEY,
     publicacion_id INT NOT NULL,
@@ -40,7 +41,7 @@ CREATE TABLE transacciones (
 );
 
 
--- 4. Tabla de Calificaciones (Soporte para la reputación)
+-- 4. Tabla de Calificaciones
 CREATE TABLE calificaciones (
     calificacion_id INT AUTO_INCREMENT PRIMARY KEY,
     transaccion_id INT NOT NULL,
@@ -52,11 +53,11 @@ CREATE TABLE calificaciones (
 );
 
 
--- 5. Catálogo de Niveles de Exposición de Publicaciones
+-- 5. Catálogo de Niveles de Publicaciones
 CREATE TABLE tipos_publicacion (
     tipo_publicacion_id INT AUTO_INCREMENT PRIMARY KEY,
     nombre ENUM('Bronce', 'Plata', 'Oro', 'Platino') NOT NULL,
-    prioridad_exposicion INT NOT NULL -- Permite ordenar los listados (ej. Platino = 4, Bronce = 1)
+    prioridad_exposicion INT NOT NULL
 );
 
 
@@ -70,24 +71,24 @@ CREATE TABLE categorias (
 -- 7. Tabla de Productos
 CREATE TABLE productos (
     producto_id INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id INT NOT NULL, -- Creador del producto
+    usuario_id INT NOT NULL,
     nombre VARCHAR(150) NOT NULL,
     descripcion TEXT,
-    categoria_id INT DEFAULT NULL, -- Permite NULL si se elimina la categoría histórica
+    categoria_id INT DEFAULT NULL,
     CONSTRAINT fk_producto_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id),
     CONSTRAINT fk_producto_categoria FOREIGN KEY (categoria_id) REFERENCES categorias(categoria_id) ON DELETE SET NULL
 );
 
 
--- 8. Tabla de Publicaciones (Soporta Venta Directa y Subasta)
+-- 8. Tabla de Publicaciones
 CREATE TABLE publicaciones (
     publicacion_id INT AUTO_INCREMENT PRIMARY KEY,
     vendedor_id INT NOT NULL,
     producto_id INT NOT NULL,
     tipo_publicacion_id INT NOT NULL,
     modalidad ENUM('Venta Directa', 'Subasta') NOT NULL,
-    precio_base DECIMAL(15, 2) NOT NULL, -- Precio fijo si es Venta Directa, precio inicial si es Subasta
-    precio_actual DECIMAL(15, 2) NOT NULL, -- Se actualiza conforme hay ofertas en subasta
+    precio_base DECIMAL(15, 2) NOT NULL,
+    precio_actual DECIMAL(15, 2) NOT NULL,
     estado ENUM('Activa', 'Pausada', 'Finalizada') DEFAULT 'Activa',
     fecha_inicio DATETIME DEFAULT CURRENT_TIMESTAMP,
     fecha_fin DATETIME NULL,
@@ -113,10 +114,10 @@ CREATE TABLE ofertas_subasta (
 CREATE TABLE preguntas_respuestas (
     pregunta_id INT AUTO_INCREMENT PRIMARY KEY,
     publicacion_id INT NOT NULL,
-    usuario_pregunta_id INT NOT NULL, -- Usuario interesado
+    usuario_pregunta_id INT NOT NULL,
     pregunta TEXT NOT NULL,
     fecha_pregunta DATETIME DEFAULT CURRENT_TIMESTAMP,
-    respuesta TEXT NULL, -- Completada solo por el vendedor
+    respuesta TEXT NULL,
     fecha_respuesta DATETIME NULL,
     CONSTRAINT fk_pr_publicacion FOREIGN KEY (publicacion_id) REFERENCES publicaciones(publicacion_id),
     CONSTRAINT fk_pr_usuario FOREIGN KEY (usuario_pregunta_id) REFERENCES usuarios(usuario_id)
