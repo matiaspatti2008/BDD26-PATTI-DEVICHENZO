@@ -81,35 +81,45 @@ CREATE TABLE ofertas_subasta (
 );
 
 
--- 8. Tabla de Preguntas y Respuestas
-CREATE TABLE preguntas_respuestas (
+-- 8. Tabla de Preguntas
+CREATE TABLE preguntas (
     pregunta_id INT AUTO_INCREMENT PRIMARY KEY,
     publicacion_id INT NOT NULL,
     usuario_pregunta_id INT NOT NULL,
     pregunta TEXT NOT NULL,
     fecha_pregunta DATETIME DEFAULT CURRENT_TIMESTAMP,
-    respuesta TEXT NULL,
-    fecha_respuesta DATETIME NULL,
-    CONSTRAINT fk_pr_publicacion FOREIGN KEY (publicacion_id) REFERENCES publicaciones(publicacion_id),
-    CONSTRAINT fk_pr_usuario FOREIGN KEY (usuario_pregunta_id) REFERENCES usuarios(usuario_id)
+    FOREIGN KEY (publicacion_id) REFERENCES publicaciones(publicacion_id),
+    FOREIGN KEY (usuario_pregunta_id) REFERENCES usuarios(usuario_id)
 );
 
 
--- 9. Catálogo de Medios de Pago
+-- 9. Tabla de Respuestas
+CREATE TABLE respuestas (
+    respuesta_id INT AUTO_INCREMENT PRIMARY KEY,
+    pregunta_id INT NOT NULL UNIQUE,
+    usuario_respuesta_id INT NOT NULL,
+    respuesta TEXT NOT NULL,
+    fecha_respuesta DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pregunta_id) REFERENCES preguntas(pregunta_id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_respuesta_id) REFERENCES usuarios(usuario_id)
+);
+
+
+-- 10. Catálogo de Medios de Pago
 CREATE TABLE medios_pago (
     medio_pago_id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(30) NOT NULL -- EN
 );
 
 
--- 10. Catálogo de Medios de Envío
+-- 11. Catálogo de Medios de Envío
 CREATE TABLE medios_envio (
     medio_envio_id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(30) NOT NULL -- EN
 );
 
 
--- 11. Tabla de Transacciones
+-- 12. Tabla de Transacciones
 CREATE TABLE transacciones (
     transaccion_id INT AUTO_INCREMENT PRIMARY KEY,
     publicacion_id INT NOT NULL,
@@ -128,7 +138,7 @@ CREATE TABLE transacciones (
 );
 
 
--- 12. Tabla de Calificaciones
+-- 13. Tabla de Calificaciones
 CREATE TABLE calificaciones (
     calificacion_id INT AUTO_INCREMENT PRIMARY KEY,
     transaccion_id INT NOT NULL,
