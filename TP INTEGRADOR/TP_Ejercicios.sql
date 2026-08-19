@@ -447,7 +447,7 @@ CREATE VIEW top10_categorias_semana AS
 	LIMIT 10;
 
 
--- 3) Publicaciones en tendencia hoy (mayor cantidad de preguntas)
+-- 3)
 CREATE VIEW publicaciones_tendencia AS
 	SELECT p.publicacion_id, prod.nombre AS nombre_producto, COUNT(pr.pregunta_id) AS cantidad_preguntas
 	FROM publicaciones p
@@ -458,7 +458,7 @@ CREATE VIEW publicaciones_tendencia AS
 	ORDER BY cantidad_preguntas DESC;
 
 
--- 4. Vendedor con mayor reputación por categoría
+-- 4)
 CREATE VIEW vendedor_mayor_reputacion_cat AS
 	SELECT u.nombre AS nombre_vendedor, c.nombre AS nombre_categoria
 	FROM categorias c
@@ -473,3 +473,111 @@ CREATE VIEW vendedor_mayor_reputacion_cat AS
 		WHERE prod2.categoria_id = c.categoria_id
 	)
 	GROUP BY c.categoria_id, c.nombre, u.usuario_id, u.nombre;
+    
+    
+
+-- TRIGGERS
+-- 1)
+delimiter //
+CREATE TRIGGER before_delete_pregunta BEFORE DELETE ON preguntas FOR EACH ROW
+begin
+    DELETE FROM respuestas WHERE pregunta_id = OLD.pregunta_id;
+end //
+
+
+-- 2)
+delimiter //
+CREATE TRIGGER after_insert_actualizar_nivel AFTER INSERT ON transacciones FOR EACH ROW
+begin
+    DECLARE idVendedor INT;
+
+    IF NEW.es_concretada = TRUE THEN
+        SET idVendedor = NEW.vendedor_id;
+        CALL actualizar_nivel_usuario(idVendedor, @nuevo_nivel, @resultado);
+    END IF;
+end //
+
+
+-- 3)
+delimiter //
+CREATE TRIGGER after_insert_reputacion AFTER INSERT ON calificaciones FOR EACH ROW
+begin
+    DECLARE idUsuario_evaluado INT;
+    DECLARE promedio DECIMAL(5,2);
+
+    SET idUsuario_evaluado = NEW.usuario_evaluado_id;
+
+    SELECT AVG(puntaje) INTO promedio
+    FROM calificaciones
+    WHERE usuario_evaluado_id = idUsuario_evaluado;
+
+    UPDATE usuarios SET reputacion_actual = (promedio * 100) / 5
+    WHERE usuario_id = idUsuario_evaluado;
+end //
+
+
+-- 4)
+delimiter //
+CREATE TRIGGER before_insert_puja BEFORE INSERT ON ofertas_subasta FOR EACH ROW
+begin
+    DECLARE v_estado VARCHAR(20);
+    DECLARE idVendedor INT;
+    DECLARE v_precio_actual DECIMAL(15,2);
+    DECLARE v_fecha_fin DATETIME;
+
+    SELECT estado, vendedor_id, precio_actual, fecha_fin
+    INTO v_estado, idVendedor, v_precio_actual, v_fecha_fin
+    FROM publicaciones
+    WHERE publicacion_id = NEW.publicacion_id;
+
+    IF v_estado != 'Activa' OR v_fecha_fin < NOW() THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ERROR: La publicación se encuentra vencida o no está activa';
+    ELSEIF NEW.comprador_id = idVendedor THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ERROR: El vendedor no puede pujar en su propia subasta';
+    ELSEIF NEW.monto_ofertado <= v_precio_actual THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ERROR: El monto ofertado debe ser mayor al precio actual';
+    END IF;
+end //
+delimiter ;
+
+
+
+-- EVENTS
+-- 1)
+CREATE EVENT eliminar_publicaciones_pausadas ON SCHEDULE EVERY 1 WEEK DO
+    DELETE FROM publicaciones
+    WHERE estado = 'Pausada'
+	AND fecha_inicio < DATE_SUB(NOW(), INTERVAL 90 DAY);
+
+
+-- 2)
+CREATE EVENT observar_publicaciones_sin_medio_pago ON SCHEDULE EVERY 1 DAY DO
+    UPDATE publicaciones SET estado = 'Observada'
+    WHERE estado = 'Activa'
+	AND modalidad = 'Venta Directa'
+    AND medio_pago_id IS NULL;
+
+
+-- 3)
+CREATE EVENT notificar_preguntas_sin_responder ON SCHEDULE EVERY 1 DAY STARTS (TIMESTAMP(CURDATE(), '10:00:00')) DO
+    INSERT INTO notificaciones (usuario_id, mensaje, fecha_envio)
+    SELECT p.vendedor_id, CONCAT('La publicación sobre ', prod.nombre, ' tiene ', COUNT(preg.pregunta_id), ' preguntas sin responder'), NOW()
+    FROM preguntas pr
+    JOIN publicaciones p ON pr.publicacion_id = p.publicacion_id
+    JOIN productos prod ON p.producto_id = prod.producto_id
+    LEFT JOIN respuestas resp ON pr.pregunta_id = resp.pregunta_id
+    WHERE resp.respuesta_id IS NULL
+	AND p.estado = 'Activa'
+    GROUP BY p.vendedor_id, p.publicacion_id, prod.nombre;
+
+
+-- 4)
+CREATE EVENT generar_estadisticas_diarias ON SCHEDULE EVERY 1 DAY STARTS (TIMESTAMP(CURDATE(), '00:00:00')) DO
+    INSERT INTO estadisticas_diarias (fecha, total_vendedores_activos, total_compradores_activos, total_productos_vendidos, facturacion_dia)
+    SELECT CURDATE(), COUNT(DISTINCT vendedor_id), COUNT(DISTINCT comprador_id), COUNT(transaccion_id), SUM(monto)
+    FROM transacciones
+    WHERE es_concretada = TRUE
+	AND DATE(fecha_transaccion) = DATE_SUB(CURDATE(), INTERVAL 1 DAY);

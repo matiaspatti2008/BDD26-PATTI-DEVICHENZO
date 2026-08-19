@@ -5,7 +5,7 @@ USE tp_ecommerce;
 -- 1. Tabla de Catálogo de Niveles
 CREATE TABLE nivel_usuario (
     nivel_id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(20) NOT NULL, -- EN
+    nombre VARCHAR(20) NOT NULL,
     ventas_min INT NOT NULL,
     facturacion_min DECIMAL(15, 2) NOT NULL
 );
@@ -27,7 +27,7 @@ CREATE TABLE usuarios (
 -- 3. Catálogo de Niveles de Publicaciones
 CREATE TABLE tipos_publicacion (
     tipo_publicacion_id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(20) NOT NULL, -- EN
+    nombre VARCHAR(20) NOT NULL,
     prioridad_exposicion INT NOT NULL
 );
 
@@ -51,25 +51,41 @@ CREATE TABLE productos (
 );
 
 
--- 6. Tabla de Publicaciones
+-- 6. Catálogo de Medios de Pago
+CREATE TABLE medios_pago (
+    medio_pago_id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(30) NOT NULL
+);
+
+
+-- 7. Catálogo de Medios de Envío
+CREATE TABLE medios_envio (
+    medio_envio_id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(30) NOT NULL
+);
+
+
+-- 8. Tabla de Publicaciones
 CREATE TABLE publicaciones (
     publicacion_id INT AUTO_INCREMENT PRIMARY KEY,
     vendedor_id INT NOT NULL,
     producto_id INT NOT NULL,
     tipo_publicacion_id INT NOT NULL,
-    modalidad VARCHAR(20) NOT NULL, -- EN
+    modalidad VARCHAR(20) NOT NULL,
     precio_base DECIMAL(15, 2) NOT NULL,
     precio_actual DECIMAL(15, 2) NOT NULL,
-    estado VARCHAR(20) DEFAULT 'Activa', -- EN
+    estado VARCHAR(20) DEFAULT 'Activa',
     fecha_inicio DATETIME DEFAULT CURRENT_TIMESTAMP,
     fecha_fin DATETIME NULL,
+    medio_pago_id INT NULL,
+    CONSTRAINT fk_pub_medio_pago FOREIGN KEY (medio_pago_id) REFERENCES medios_pago(medio_pago_id),
     CONSTRAINT fk_pub_vendedor FOREIGN KEY (vendedor_id) REFERENCES usuarios(usuario_id),
     CONSTRAINT fk_pub_producto FOREIGN KEY (producto_id) REFERENCES productos(producto_id) ON DELETE RESTRICT,
     CONSTRAINT fk_pub_tipo FOREIGN KEY (tipo_publicacion_id) REFERENCES tipos_publicacion(tipo_publicacion_id)
 );
 
 
--- 7. Tabla de Ofertas (Exclusiva para Subasta)
+-- 9. Tabla de Ofertas (Exclusiva para Subasta)
 CREATE TABLE ofertas_subasta (
     oferta_id INT AUTO_INCREMENT PRIMARY KEY,
     publicacion_id INT NOT NULL,
@@ -81,7 +97,7 @@ CREATE TABLE ofertas_subasta (
 );
 
 
--- 8. Tabla de Preguntas
+-- 10. Tabla de Preguntas
 CREATE TABLE preguntas (
     pregunta_id INT AUTO_INCREMENT PRIMARY KEY,
     publicacion_id INT NOT NULL,
@@ -93,7 +109,7 @@ CREATE TABLE preguntas (
 );
 
 
--- 9. Tabla de Respuestas
+-- 11. Tabla de Respuestas
 CREATE TABLE respuestas (
     respuesta_id INT AUTO_INCREMENT PRIMARY KEY,
     pregunta_id INT NOT NULL UNIQUE,
@@ -102,20 +118,6 @@ CREATE TABLE respuestas (
     fecha_respuesta DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (pregunta_id) REFERENCES preguntas(pregunta_id) ON DELETE CASCADE,
     FOREIGN KEY (usuario_respuesta_id) REFERENCES usuarios(usuario_id)
-);
-
-
--- 10. Catálogo de Medios de Pago
-CREATE TABLE medios_pago (
-    medio_pago_id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(30) NOT NULL -- EN
-);
-
-
--- 11. Catálogo de Medios de Envío
-CREATE TABLE medios_envio (
-    medio_envio_id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(30) NOT NULL -- EN
 );
 
 
@@ -147,4 +149,26 @@ CREATE TABLE calificaciones (
     comentario TEXT,
     CONSTRAINT fk_transaccion FOREIGN KEY (transaccion_id) REFERENCES transacciones(transaccion_id),
     CONSTRAINT fk_evaluado FOREIGN KEY (usuario_evaluado_id) REFERENCES usuarios(usuario_id)
+);
+
+
+-- 14. Tabla de Notificaciones
+CREATE TABLE notificaciones (
+    notificacion_id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    mensaje TEXT NOT NULL,
+    fecha_envio DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
+);
+
+
+-- 15. Tabla de estadísticas
+CREATE TABLE estadisticas_diarias (
+    estadistica_id INT AUTO_INCREMENT PRIMARY KEY,
+    fecha DATE NOT NULL,
+    total_vendedores_activos INT NOT NULL,
+    total_compradores_activos INT NOT NULL,
+    total_productos_vendidos INT NOT NULL,
+    facturacion_dia DECIMAL(15, 2) NULL,
+    fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
 );

@@ -32,7 +32,17 @@ Esta tabla contiene la información de los artículos creados por los usuarios a
 - categoria_id: Asocia el producto a una categoría. Es opcional (NULL) para permitir eliminar una categoría que no tiene publicaciones activas sin perder la integridad del historial de productos vendidos
 
 
-6. Tabla de Publicaciones (Soporta Venta Directa y Subasta)
+6. Catálogo de Medios de Pago
+Esta tabla es el catálogo de alternativas de cobro/pago
+- nombre: Opciones requeridas: 'Tarjeta de Crédito', 'Tarjeta de Débito', 'Pago Fácil', 'Rapipago'
+
+
+7. Catálogo de Medios de Envío
+Esta tabla es el catálogo de logística de entrega
+- nombre: Opciones requeridas: 'OCA', 'Correo Argentino
+
+
+8. Tabla de Publicaciones (Soporta Venta Directa y Subasta)
 Esta tabla es la entidad central que oferta un producto en la plataforma
 - vendedor_id: Relaciona la publicación con el usuario vendedor
 - producto_id: Asocia el producto ofertado. La restricción RESTRICT impide eliminar el producto mientras tenga una publicación activa o asociada
@@ -42,9 +52,10 @@ Esta tabla es la entidad central que oferta un producto en la plataforma
 - precio_actual: Monto dinámico que se incrementa en las subastas con cada oferta
 - estado: 'Activa', 'Pausada' o 'Finalizada'. Controla la posibilidad de recibir compras, ofertas o preguntas
 - fecha_inicio / fecha_fin: Registro temporal de vigencia de la publicación
+- medio_pago_id: Asocia el medio de pago
 
 
-7. Tabla de Ofertas (Exclusiva para Subasta)
+9. Tabla de Ofertas (Exclusiva para Subasta)
 Esta tabla registra el historial de pujas cuando la publicación es de tipo 'Subasta'
 - publicacion_id): Asocia la oferta a una publicación subastada
 - comprador_id: Usuario que realiza la oferta
@@ -52,29 +63,19 @@ Esta tabla registra el historial de pujas cuando la publicación es de tipo 'Sub
 - fecha_oferta: Timestamp de la puja para ordenar la posición ganadora
 
 
-8. Tabla de Preguntas
+10. Tabla de Preguntas
 Esta tabla soporta el canal de preguntas en publicaciones activas
 - publicacion_id: Publicación sobre la cual se consulta
 - usuario_pregunta_id: Usuario interesado que efectúa la pregunta
 - pregunta / fecha_pregunta: Texto de la inquietud y su momento de creación
 
 
-9. Tabla de Respuestas
+11. Tabla de Respuestas
 Esta tabla soporta el canal de respuestas en publicaciones activas
 - publicacion_id: Publicación sobre la cual se consulta
 - pregunta_id: Vinculado a la pregunta a la que refiere la respuesta. Garantiza una única respuesta por pregunta
 - usuario_respuesta_id: Usuario vendedor que efectúa una respuesta
 - respuesta / fecha_respuesta: Texto ingresado exclusivamente por el vendedor (NULL hasta ser respondido)
-
-
-10. Catálogo de Medios de Pago
-Esta tabla es el catálogo de alternativas de cobro/pago
-- nombre: Opciones requeridas: 'Tarjeta de Crédito', 'Tarjeta de Débito', 'Pago Fácil', 'Rapipago'
-
-
-11. Catálogo de Medios de Envío
-Esta tabla es el catálogo de logística de entrega
-- nombre: Opciones requeridas: 'OCA', 'Correo Argentino
 
 
 12. Tabla de Transacciones
@@ -94,3 +95,22 @@ Esta tabla almacena las evaluaciones mutuas post venta
 - usuario_evaluado_id: Identifica a quién se califica (vendedor o comprador)
 - puntaje: Valor numérico para calcular la satisfacción y alimentar la escala 0-100% de la reputación
 - comentario: Feedback cualitativo de la experiencia
+
+
+14. Tabla de Notificaciones
+Esta tabla almacena los mensajes o avisos automáticos generados por el sistema para los usuarios
+- notificacion_id: Identificador único de cada notificación
+- usuario_id: ID del usuario (vendedor) que recibe el mensaje
+- mensaje: Texto completo de la notificación
+- fecha_envio: Fecha y hora exacta en que el sistema creó y envió el aviso
+
+
+15. Tabla de Estadísticas
+Esta tabla almacena un resumen diario de las métricas clave del sistema (ventas, facturación y usuarios activos). Evita sobrecargar la tabla de transacciones con consultas pesadas
+- estadistica_id: Identificador único de cada registro diario de métricas
+- fecha: Fecha del día al que corresponden las estadísticas consolidadas
+- total_vendedores_activos: Cantidad de vendedores distintos que concretaron al menos una venta durante ese día
+- total_compradores_activos: Cantidad de compradores distintos que realizaron al menos una compra durante ese día
+- total_productos_vendidos: Cantidad total de transacciones concretadas en el día
+- facturacion_dia: Suma total del dinero generado por todas las ventas concretadas de la jornada
+- fecha_registro: Fecha y hora exacta en la que el evento programado procesó e guardó el registro
