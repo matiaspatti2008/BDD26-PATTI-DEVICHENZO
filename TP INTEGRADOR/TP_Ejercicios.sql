@@ -14,6 +14,9 @@ begin
     
     RETURN IFNULL(promedio_dia, 0.00);
 end //
+delimiter ;
+
+SELECT tiempo_prom_vender(1) AS tiempo_promedio_dias;
 
 
 -- 2)
@@ -33,6 +36,10 @@ begin
     
     RETURN comision;
 end //
+delimiter ;
+
+SELECT comision_nivel(100000.00, 'Gold') AS comision_gold,
+       comision_nivel(100000.00, 'Normal') AS comision_normal;
 
 
 -- 3)
@@ -58,6 +65,9 @@ begin
 
     RETURN (ventas_concretadas * 100) / total_publicaciones;
 end //
+delimiter ;
+
+SELECT porcentaje_ventas(1) AS porcentaje_exito;
 
 
 -- 4)
@@ -81,20 +91,30 @@ BEGIN
 
     RETURN IFNULL(max_oferta, 0);
 end //
+delimiter ;
+
+SELECT mayor_precio_ofertado(1) AS oferta_maxima;
 
 
 -- 5)
-delimiter //
-CREATE FUNCTION precio_prom_categoria(idCategoria INT) returns decimal(15,2) deterministic
+DROP FUNCTION IF EXISTS precio_prom_categoria;
+
+DELIMITER //
+
+CREATE FUNCTION precio_prom_categoria(id_cat INT) RETURNS DECIMAL(15,2) DETERMINISTIC
 begin
-	DECLARE promedio decimal(15, 2);
-    SELECT AVG(p.precio_base) INTO promedio
-    FROM publicacion p
-    JOIN productos pr ON p.producto_id = pr.producto_id
-    WHERE prod.categoria_id = idCategoria;
-    
-	RETURN IFNULL(promedio, 0);
+    DECLARE promedio DECIMAL(15,2);
+
+    SELECT IFNULL(AVG(pub.precio_actual), 0) INTO promedio
+    FROM publicaciones pub
+    JOIN productos prod ON pub.producto_id = prod.producto_id
+    WHERE prod.categoria_id = id_cat;
+
+    RETURN promedio;
 end //
+delimiter ;
+
+SELECT precio_prom_categoria(1) AS precio_promedio;
 
 
 -- 6)
@@ -109,6 +129,9 @@ begin
     
     RETURN ultima_fecha;
 end //
+delimiter ;
+
+SELECT ultima_compra(2) AS fecha_ultima_compra;
 
 
 
@@ -120,15 +143,20 @@ begin
     IF busqueda IS NULL OR busqueda = '' THEN
         SET resultado = 'ERROR: El término de búsqueda no puede estar vacío';
     ELSE
-        SELECT p.publicacion_id, pr.nombre, pr.precio_actual
-        FROM publicaciones p
-        JOIN productos pr ON p.producto_id = pr.producto_id
-        WHERE pr.nombre LIKE CONCAT('%', busqueda, '%')
-		OR pr.descripcion LIKE CONCAT('%', busqueda, '%');
+        SELECT p.publicacion_id, pr.nombre AS producto, pr.descripcion, p.precio_actual, p.estado, p.modalidad
+		FROM publicaciones p
+		JOIN productos pr ON p.producto_id = pr.producto_id
+		WHERE (pr.nombre LIKE CONCAT('%', busqueda, '%') 
+		OR pr.descripcion LIKE CONCAT('%', busqueda, '%'))
+		AND p.estado = 'Activa';
         
         SET resultado = 'EXITO: Búsqueda realizada correctamente';
     END IF;
 end //
+delimiter ;
+
+CALL buscar_publicaciones('Gamer', @buscar);
+SELECT @buscar;
 
 
 -- 2)
@@ -165,6 +193,10 @@ begin
         SET resultado = 'EXITO: Puja registrada correctamente';
     END IF;
 end //
+delimiter ;
+
+CALL pujar_subasta(1, 2, 15000.00, @pujar);
+SELECT @pujar;
 
 
 -- 3)
@@ -195,6 +227,10 @@ begin
         SET resultado = 'EXITO: Publicación pausada correctamente.';
     END IF;
 end //
+delimiter ;
+
+CALL pausar_publicacion(2, 1, @pausar);
+SELECT @pausar;
 
 
 -- 4)
@@ -231,7 +267,7 @@ begin
 
         IF nuevo_nivel IS NOT NULL THEN
             SELECT nivel_id INTO idNivel
-            FROM niveles_usuario WHERE nombre = nuevo_nivel;
+            FROM nivel_usuario WHERE nombre = nuevo_nivel;
         ELSE
             SET idNivel = NULL;
         END IF;
@@ -242,6 +278,10 @@ begin
         SET resultado = 'EXITO: Nivel de usuario actualizado correctamente.';
     END IF;
 end //
+delimiter; 
+
+CALL actualizar_nivel_usuario(1, @nuevo_nivel, @nivel);
+SELECT @nuevo_nivel AS nivel_asignado, @nivel AS estado;
 
 
 -- 5)
@@ -285,6 +325,10 @@ begin
         SET resultado = 'EXITO: Calificación registrada y reputación actualizada';
     END IF;
 end //
+delimiter ;
+
+CALL calificar_usuario(1, 1, 2, 5, 'Excelente comprador', @calificar);
+SELECT @calificar;
 
 
 -- 6)
@@ -322,6 +366,10 @@ begin
         END IF;
     END IF;
 end //
+delimiter ;
+
+CALL ganador_subasta(1, @ganador);
+SELECT @ganador;
 
 
 -- 7)
@@ -350,11 +398,15 @@ begin
         SET resultado = 'EXITO: Pregunta creada correctamente';
     END IF;
 end //
+delimiter ;
+
+CALL crear_pregunta(1, 2, '¿Se puede cambiar?', @pregunta);
+SELECT @pregunta;
 
 
 -- 8)
 delimiter //
-CREATE PROCEDURE estadisticas_vendedor( IN idVendedor INT, OUT resultado VARCHAR(255))
+CREATE PROCEDURE estadisticas_vendedor(IN idVendedor INT, OUT resultado VARCHAR(255))
 begin
     DECLARE existe INT DEFAULT 0;
 
@@ -390,13 +442,17 @@ begin
                 WHERE p.vendedor_id = idVendedor) AS preguntas_recibidas,
                (SELECT IFNULL(AVG(TIMESTAMPDIFF(DAY, p.fecha_inicio, t.fecha_transaccion)), 0)
                FROM publicaciones p
-               JOIN transacciones t ON pub.publicacion_id = t.publicacion_id
+               JOIN transacciones t ON p.publicacion_id = t.publicacion_id
                WHERE p.vendedor_id = idVendedor
                AND t.es_concretada = TRUE) AS tiempo_promedio_venta_dias;
 
         SET resultado = 'EXITO: Estadísticas generadas correctamente';
     END IF;
 end //
+delimiter ;
+
+CALL estadisticas_vendedor(1, @stats);
+SELECT @stats;
 
 
 -- 9)
@@ -420,19 +476,24 @@ begin
 end //
 delimiter ;
 
+CALL top_vendedores_mes('2026-01-01 00:00:00', '2026-12-31 23:59:59', @top);
+SELECT @top;
+
 
 
 -- VISTAS
 -- 1)
 CREATE VIEW preguntas_sin_respuesta AS
-	SELECT pr.pregunta_id, pr.pregunta AS descripcion, p.publicacion_id, prod.nombre AS nombre_producto, u.nombre AS usuario_respondio
+	SELECT pr.pregunta_id, pr.pregunta AS descripcion, pr.publicacion_id, prod.nombre AS nombre_producto, u.nombre AS dueno_publicacion
 	FROM preguntas pr
 	JOIN publicaciones p ON pr.publicacion_id = p.publicacion_id
 	JOIN productos prod ON p.producto_id = prod.producto_id
-	LEFT JOIN respuestas resp ON pr.pregunta_id = resp.pregunta_id
-	LEFT JOIN usuarios u ON resp.usuario_respuesta_id = u.usuario_id
-	WHERE p.estado = 'Activa' 
-	AND resp.respuesta_id IS NULL;
+	JOIN usuarios u ON p.vendedor_id = u.usuario_id
+	LEFT JOIN respuestas r ON pr.pregunta_id = r.pregunta_id
+	WHERE p.estado = 'Activa'
+    AND r.respuesta_id IS NULL;
+
+SELECT * FROM preguntas_sin_respuesta;
 
 
 -- 2)
@@ -446,6 +507,8 @@ CREATE VIEW top10_categorias_semana AS
 	ORDER BY cantidad_publicaciones DESC
 	LIMIT 10;
 
+SELECT * FROM top10_categorias_semana;
+
 
 -- 3)
 CREATE VIEW publicaciones_tendencia AS
@@ -456,6 +519,8 @@ CREATE VIEW publicaciones_tendencia AS
 	WHERE DATE(pr.fecha_pregunta) = CURRENT_DATE()
 	GROUP BY p.publicacion_id, prod.nombre
 	ORDER BY cantidad_preguntas DESC;
+    
+SELECT * FROM publicaciones_tendencia;
 
 
 -- 4)
@@ -474,6 +539,8 @@ CREATE VIEW vendedor_mayor_reputacion_cat AS
 	)
 	GROUP BY c.categoria_id, c.nombre, u.usuario_id, u.nombre;
     
+SELECT * FROM vendedor_mayor_reputacion_cat;
+    
     
 
 -- TRIGGERS
@@ -483,6 +550,10 @@ CREATE TRIGGER before_delete_pregunta BEFORE DELETE ON preguntas FOR EACH ROW
 begin
     DELETE FROM respuestas WHERE pregunta_id = OLD.pregunta_id;
 end //
+delimiter ;
+
+DELETE FROM preguntas WHERE pregunta_id = 1;
+SELECT * FROM respuestas WHERE pregunta_id = 1;
 
 
 -- 2)
@@ -496,6 +567,11 @@ begin
         CALL actualizar_nivel_usuario(idVendedor, @nuevo_nivel, @resultado);
     END IF;
 end //
+delimiter ;
+
+INSERT INTO transacciones (publicacion_id, vendedor_id, comprador_id, medio_pago_id, medio_envio_id, monto, cantidad, fecha_transaccion, es_concretada)
+VALUES (1, 1, 2, 1, 1, 500000.00, 8, NOW(), TRUE);
+SELECT usuario_id, nivel_usuario_id FROM usuarios WHERE usuario_id = 1;
 
 
 -- 3)
@@ -514,6 +590,11 @@ begin
     UPDATE usuarios SET reputacion_actual = (promedio * 100) / 5
     WHERE usuario_id = idUsuario_evaluado;
 end //
+delimiter ;
+
+INSERT INTO calificaciones (transaccion_id, usuario_evaluado_id, puntaje, comentario)
+VALUES (1, 2, 4, 'Todo correcto');
+SELECT usuario_id, reputacion_actual FROM usuarios WHERE usuario_id = 2;
 
 
 -- 4)
@@ -543,14 +624,21 @@ begin
 end //
 delimiter ;
 
+INSERT INTO ofertas_subasta (publicacion_id, comprador_id, monto_ofertado)
+VALUES (1, 2, 5.00);
+
 
 
 -- EVENTS
+SHOW EVENTS FROM tp_ecommerce;
+
 -- 1)
 CREATE EVENT eliminar_publicaciones_pausadas ON SCHEDULE EVERY 1 WEEK DO
     DELETE FROM publicaciones
     WHERE estado = 'Pausada'
 	AND fecha_inicio < DATE_SUB(NOW(), INTERVAL 90 DAY);
+    
+SELECT * FROM publicaciones WHERE estado = 'Pausada' AND fecha_inicio < DATE_SUB(NOW(), INTERVAL 90 DAY);
 
 
 -- 2)
@@ -559,6 +647,8 @@ CREATE EVENT observar_publicaciones_sin_medio_pago ON SCHEDULE EVERY 1 DAY DO
     WHERE estado = 'Activa'
 	AND modalidad = 'Venta Directa'
     AND medio_pago_id IS NULL;
+    
+SELECT * FROM publicaciones WHERE estado = 'Observada';
 
 
 -- 3)
@@ -572,6 +662,8 @@ CREATE EVENT notificar_preguntas_sin_responder ON SCHEDULE EVERY 1 DAY STARTS (T
     WHERE resp.respuesta_id IS NULL
 	AND p.estado = 'Activa'
     GROUP BY p.vendedor_id, p.publicacion_id, prod.nombre;
+    
+SELECT * FROM notificaciones;
 
 
 -- 4)
@@ -582,54 +674,65 @@ CREATE EVENT generar_estadisticas_diarias ON SCHEDULE EVERY 1 DAY STARTS (TIMEST
     WHERE es_concretada = TRUE
 	AND DATE(fecha_transaccion) = DATE_SUB(CURDATE(), INTERVAL 1 DAY);
     
+SELECT * FROM estadisticas_diarias;
+    
     
     
 -- INDICES
 -- 1)
 CREATE INDEX nombre_producto ON productos(nombre);
+EXPLAIN ANALYZE SELECT * FROM productos WHERE nombre = 'PlayStation 5';
 
 
 -- 2)
 CREATE UNIQUE INDEX email_usuario ON usuarios(email);
+EXPLAIN ANALYZE SELECT * FROM usuarios WHERE email = 'ejemplo@correo.com';
 
 
 -- 3)
 CREATE INDEX publicacion_frecuente ON publicaciones(estado);
+EXPLAIN ANALYZE SELECT * FROM publicaciones WHERE estado = 'Activa';
 
 
 
 -- TRANSACCIONES
 -- 1)
 delimiter //
-CREATE PROCEDURE comprar_publicacion(IN idPublicacion INT, IN idComprador INT, IN idMedio_pago INT, IN idMedio_envio INT, IN cantidad INT)
+CREATE PROCEDURE comprar_publicacion(IN p_publicacion_id INT, IN p_comprador_id INT, IN p_medio_pago_id INT, IN p_medio_envio_id INT, IN p_cantidad INT)
 begin
-    DECLARE idVendedor INT;
+    DECLARE v_vendedor_id INT;
     DECLARE v_precio DECIMAL(15,2);
     DECLARE v_stock INT;
     DECLARE v_estado VARCHAR(20);
+    DECLARE v_monto_total DECIMAL(15,2);
 
-    START TRANSACTION;
-    SELECT vendedor_id, precio_actual, stock, estado INTO idVendedor, v_precio, v_stock, v_estado 
-    FROM publicaciones 
-    WHERE publicacion_id = idPublicacion FOR UPDATE;
+    SELECT pub.vendedor_id, pub.precio_actual, pub.stock, pub.estado 
+    INTO v_vendedor_id, v_precio,v_stock, v_estado
+    FROM publicaciones pub
+    WHERE pub.publicacion_id = p_publicacion_id;
 
-    IF (v_estado != 'Activa' OR v_stock < cantidad) THEN
-        ROLLBACK;
+    IF v_vendedor_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: La publicación especificada no existe.';
+    ELSEIF v_estado != 'Activa' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: La publicación no está activa para compras.';
+    ELSEIF v_stock < p_cantidad THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: No hay suficiente stock disponible.';
     ELSE
-        UPDATE publicaciones SET stock = stock - cantidad 
-        WHERE publicacion_id = idPublicacion;
+        SET v_monto_total = v_precio * p_cantidad;
 
-        IF (v_stock - cantidad = 0) THEN
-            UPDATE publicaciones SET estado = 'Finalizada' 
-            WHERE publicacion_id = idPublicacion;
-        END IF;
+        INSERT INTO transacciones (publicacion_id, vendedor_id, comprador_id, medio_pago_id, medio_envio_id, monto, cantidad, fecha_transaccion, es_concretada) 
+        VALUES (p_publicacion_id, v_vendedor_id, p_comprador_id,  p_medio_pago_id,p_medio_envio_id, v_monto_total, p_cantidad, NOW(), TRUE);
 
-        INSERT INTO transacciones (publicacion_id, vendedor_id, comprador_id, medio_pago_id, medio_envio_id, monto, fecha_transaccion, es_concretada)
-        VALUES (idPublicacion, idVendedor, idComprador, idMedio_pago, idMedio_envio, (v_precio * cantidad), NOW(), TRUE);
-
-        COMMIT;
+        UPDATE publicaciones 
+        SET stock = stock - p_cantidad
+        WHERE publicacion_id = p_publicacion_id;
     END IF;
 end //
+delimiter ;
+
+CALL comprar_publicacion(13, 1, 1, 1, 2);
+SELECT publicacion_id, stock, estado FROM publicaciones WHERE publicacion_id = 1;
+SELECT * FROM transacciones ORDER BY transaccion_id DESC LIMIT 1;
 
 -- Explicación:
 -- Garantiza la atomicidad y la consistencia en la venta y el inventario. Al ejecutar FOR UPDATE sobre el registro de la publicación,
@@ -663,6 +766,11 @@ begin
         COMMIT;
     END IF;
 end //
+delimiter ;
+
+CALL realizar_oferta_subasta(1, 2, 25000.00);
+SELECT publicacion_id, precio_actual FROM publicaciones WHERE publicacion_id = 1;
+SELECT * FROM ofertas_subasta WHERE publicacion_id = 1 ORDER BY oferta_id DESC LIMIT 1;
 
 -- Explicación:
 -- Aplica X-Lock con FOR UPDATE sobre la publicación para validar el valor de la oferta de forma aislada,
@@ -698,6 +806,10 @@ begin
 end //
 delimiter ;
 
+CALL cancelar_transaccion(1);
+SELECT transaccion_id, es_concretada FROM transacciones WHERE transaccion_id = 1;
+SELECT publicacion_id, stock, estado FROM publicaciones WHERE publicacion_id = 1;
+
 -- Explicación:
 -- Cumple con el principio de atomicidad en la gestión de reclamos o cancelaciones de compra. Bloquea la transacción registrada mediante FOR UPDATE.
 -- Si la transacción ya se encontraba anulada (es_concretada = FALSE), la sentencia ROLLBACK cancela la ejecución.
@@ -708,3 +820,19 @@ delimiter ;
 
 -- ROLES Y ACCESO
 -- 1)
+CREATE ROLE r_auditor;
+GRANT SELECT ON tp_ecommerce.preguntas_sin_respuesta TO r_auditor;
+GRANT SELECT ON tp_ecommerce.top10_categorias_semana TO r_auditor;
+GRANT SELECT ON tp_ecommerce.publicaciones_tendencia TO r_auditor;
+GRANT SELECT ON tp_ecommerce.vendedor_mayor_reputacion_cat TO r_auditor;
+
+
+-- 2)
+CREATE ROLE r_desarrollador;
+GRANT SELECT ON tp_ecommerce.* TO r_desarrollador;
+GRANT CREATE ROUTINE ON tp_ecommerce.* TO r_desarrollador;
+
+
+-- 3)
+CREATE ROLE r_admin;
+GRANT ALL PRIVILEGES ON tp_ecommerce.* TO r_admin;
