@@ -18,7 +18,7 @@ CREATE TABLE usuarios (
     email VARCHAR(100) UNIQUE NOT NULL,
     contasena VARCHAR(255) NOT NULL,
     nivel_usuario_id INT DEFAULT NULL,
-    reputacion_actual DECIMAL(5, 2) DEFAULT 0.00,
+    reputacion_actual DECIMAL(5, 2) DEFAULT 0,
     fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_nivel FOREIGN KEY (nivel_usuario_id) REFERENCES nivel_usuario(nivel_id)
 );
@@ -78,6 +78,7 @@ CREATE TABLE publicaciones (
     fecha_inicio DATETIME DEFAULT CURRENT_TIMESTAMP,
     fecha_fin DATETIME NULL,
     medio_pago_id INT NULL,
+    stock INT NOT NULL,
     CONSTRAINT fk_pub_medio_pago FOREIGN KEY (medio_pago_id) REFERENCES medios_pago(medio_pago_id),
     CONSTRAINT fk_pub_vendedor FOREIGN KEY (vendedor_id) REFERENCES usuarios(usuario_id),
     CONSTRAINT fk_pub_producto FOREIGN KEY (producto_id) REFERENCES productos(producto_id) ON DELETE RESTRICT,

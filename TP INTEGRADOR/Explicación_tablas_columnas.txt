@@ -53,11 +53,12 @@ Esta tabla es la entidad central que oferta un producto en la plataforma
 - estado: 'Activa', 'Pausada' o 'Finalizada'. Controla la posibilidad de recibir compras, ofertas o preguntas
 - fecha_inicio / fecha_fin: Registro temporal de vigencia de la publicación
 - medio_pago_id: Asocia el medio de pago
+- stock: cantidad disponible del producto publicado
 
 
 9. Tabla de Ofertas (Exclusiva para Subasta)
 Esta tabla registra el historial de pujas cuando la publicación es de tipo 'Subasta'
-- publicacion_id): Asocia la oferta a una publicación subastada
+- publicacion_id: Asocia la oferta a una publicación subastada
 - comprador_id: Usuario que realiza la oferta
 - monto_ofertado: Valor con el que se incrementa el monto de la subasta sin finalizar la publicación
 - fecha_oferta: Timestamp de la puja para ordenar la posición ganadora
@@ -99,7 +100,6 @@ Esta tabla almacena las evaluaciones mutuas post venta
 
 14. Tabla de Notificaciones
 Esta tabla almacena los mensajes o avisos automáticos generados por el sistema para los usuarios
-- notificacion_id: Identificador único de cada notificación
 - usuario_id: ID del usuario (vendedor) que recibe el mensaje
 - mensaje: Texto completo de la notificación
 - fecha_envio: Fecha y hora exacta en que el sistema creó y envió el aviso
@@ -107,7 +107,6 @@ Esta tabla almacena los mensajes o avisos automáticos generados por el sistema 
 
 15. Tabla de Estadísticas
 Esta tabla almacena un resumen diario de las métricas clave del sistema (ventas, facturación y usuarios activos). Evita sobrecargar la tabla de transacciones con consultas pesadas
-- estadistica_id: Identificador único de cada registro diario de métricas
 - fecha: Fecha del día al que corresponden las estadísticas consolidadas
 - total_vendedores_activos: Cantidad de vendedores distintos que concretaron al menos una venta durante ese día
 - total_compradores_activos: Cantidad de compradores distintos que realizaron al menos una compra durante ese día

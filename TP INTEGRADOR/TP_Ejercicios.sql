@@ -581,3 +581,130 @@ CREATE EVENT generar_estadisticas_diarias ON SCHEDULE EVERY 1 DAY STARTS (TIMEST
     FROM transacciones
     WHERE es_concretada = TRUE
 	AND DATE(fecha_transaccion) = DATE_SUB(CURDATE(), INTERVAL 1 DAY);
+    
+    
+    
+-- INDICES
+-- 1)
+CREATE INDEX nombre_producto ON productos(nombre);
+
+
+-- 2)
+CREATE UNIQUE INDEX email_usuario ON usuarios(email);
+
+
+-- 3)
+CREATE INDEX publicacion_frecuente ON publicaciones(estado);
+
+
+
+-- TRANSACCIONES
+-- 1)
+delimiter //
+CREATE PROCEDURE comprar_publicacion(IN idPublicacion INT, IN idComprador INT, IN idMedio_pago INT, IN idMedio_envio INT, IN cantidad INT)
+begin
+    DECLARE idVendedor INT;
+    DECLARE v_precio DECIMAL(15,2);
+    DECLARE v_stock INT;
+    DECLARE v_estado VARCHAR(20);
+
+    START TRANSACTION;
+    SELECT vendedor_id, precio_actual, stock, estado INTO idVendedor, v_precio, v_stock, v_estado 
+    FROM publicaciones 
+    WHERE publicacion_id = idPublicacion FOR UPDATE;
+
+    IF (v_estado != 'Activa' OR v_stock < cantidad) THEN
+        ROLLBACK;
+    ELSE
+        UPDATE publicaciones SET stock = stock - cantidad 
+        WHERE publicacion_id = idPublicacion;
+
+        IF (v_stock - cantidad = 0) THEN
+            UPDATE publicaciones SET estado = 'Finalizada' 
+            WHERE publicacion_id = idPublicacion;
+        END IF;
+
+        INSERT INTO transacciones (publicacion_id, vendedor_id, comprador_id, medio_pago_id, medio_envio_id, monto, fecha_transaccion, es_concretada)
+        VALUES (idPublicacion, idVendedor, idComprador, idMedio_pago, idMedio_envio, (v_precio * cantidad), NOW(), TRUE);
+
+        COMMIT;
+    END IF;
+end //
+
+-- Explicación:
+-- Garantiza la atomicidad y la consistencia en la venta y el inventario. Al ejecutar FOR UPDATE sobre el registro de la publicación,
+-- se bloquea la fila para leer el stock y el precio vigentes sin interferencia de otros compradores.
+-- Si la publicación no está activa o no hay stock suficiente para cubrir la cantidad demandada, la instrucción ROLLBACK anula la operación.
+-- De lo contrario, descuenta el stock, registra el movimiento en la tabla transacciones y confirma con COMMIT.
+
+
+-- 2)
+delimiter //
+CREATE PROCEDURE realizar_oferta_subasta(IN idPublicacion INT, IN idComprador INT, IN monto_of DECIMAL(15,2))
+begin
+    DECLARE v_precio_actual DECIMAL(15,2);
+    DECLARE v_estado VARCHAR(20);
+    DECLARE v_modalidad VARCHAR(20);
+
+    START TRANSACTION;
+    SELECT precio_actual, estado, modalidad INTO v_precio_actual, v_estado, v_modalidad 
+    FROM publicaciones 
+    WHERE publicacion_id = idPublicacion FOR UPDATE;
+
+    IF (v_estado != 'Activa' OR v_modalidad != 'Subasta' OR monto_of <= v_precio_actual) THEN
+        ROLLBACK;
+    ELSE
+        INSERT INTO ofertas_subasta (publicacion_id, comprador_id, monto_ofertado, fecha_oferta)
+        VALUES (idPublicacion, idComprador, monto_of, NOW());
+
+        UPDATE publicaciones SET precio_actual = monto_of 
+        WHERE publicacion_id = idPublicacion;
+
+        COMMIT;
+    END IF;
+end //
+
+-- Explicación:
+-- Aplica X-Lock con FOR UPDATE sobre la publicación para validar el valor de la oferta de forma aislada,
+-- previniendo lecturas no repetibles o lecturas inconsistentes entre múltiples postores concurrentes. Verifica que la publicación
+-- corresponda a la modalidad 'Subasta' y esté 'Activa'. Si el monto ofertado no supera al precio_actual, la transacción ejecuta un ROLLBACK.
+-- Si es mayor, registra la postura en ofertas_subasta, actualiza el precio_actual en publicaciones y consolida los cambios con COMMIT.
+
+
+-- 3)
+-- Elegimos cancelación de una transacción y restitución de stock
+delimiter //
+CREATE PROCEDURE cancelar_transaccion(IN idTransaccion INT)
+begin
+    DECLARE idPublicacion INT;
+    DECLARE v_es_concretada BOOLEAN;
+
+    START TRANSACTION;
+    SELECT publicacion_id, es_concretada INTO idPublicacion, v_es_concretada 
+    FROM transacciones 
+    WHERE transaccion_id = idTransaccion FOR UPDATE;
+
+    IF (v_es_concretada = FALSE) THEN
+        ROLLBACK;
+    ELSE
+        UPDATE transacciones SET es_concretada = FALSE 
+        WHERE transaccion_id = idTransaccion;
+
+        UPDATE publicaciones SET stock = stock + 1, estado = 'Activa' 
+        WHERE publicacion_id = idPublicacion;
+
+        COMMIT;
+    END IF;
+end //
+delimiter ;
+
+-- Explicación:
+-- Cumple con el principio de atomicidad en la gestión de reclamos o cancelaciones de compra. Bloquea la transacción registrada mediante FOR UPDATE.
+-- Si la transacción ya se encontraba anulada (es_concretada = FALSE), la sentencia ROLLBACK cancela la ejecución.
+-- Si estaba concretada, marca es_concretada = FALSE en la tabla transacciones y restituye las unidades correspondientes
+-- al stock de la tabla publicaciones (reactivando la publicación si estaba finalizada), asegurando que ambas operaciones se persistan juntas con COMMIT.
+
+
+
+-- ROLES Y ACCESO
+-- 1)
