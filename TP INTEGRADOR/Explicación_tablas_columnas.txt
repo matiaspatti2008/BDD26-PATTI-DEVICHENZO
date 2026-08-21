@@ -16,7 +16,7 @@ Esta tabla almacena los datos del usuario
 
 3. Catálogo de Niveles de Exposición de Publicaciones
 Esta tabla estructura los niveles de exposición
-- nombre (ENUM): Especifica las 4 variantes exigidas: 'Bronce', 'Plata', 'Oro', 'Platino'
+- nombre: Especifica las 4 variantes exigidas: 'Bronce', 'Plata', 'Oro', 'Platino'
 - prioridad_exposicion: Valor entero que permite ordenar los listados en las búsquedas según el nivel contratado
 
 
