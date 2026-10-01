@@ -48,5 +48,5 @@ db.usuarios.find({"compras.productos": "laptop"},{nombre:1})
 
 
 Ejercicio 12:
-db.usuarios.find({"compras.monto": {$gt: 250}, "compras.productos": "televisor"})
+db.usuarios.find({compras: {$elemMatch: {monto: {$gt: 250}}}, "compras.productos": "televisor"},{nombre:1,apellido:1,edad:1,mail:1})
 
