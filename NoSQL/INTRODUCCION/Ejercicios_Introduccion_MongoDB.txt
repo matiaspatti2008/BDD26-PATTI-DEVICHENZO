@@ -1,0 +1,52 @@
+Ejercicio 1:
+db.usuarios.insertOne({_id:5, nombre:"Agustin", apellido:"Pereira", edad:25, mail:"agustin.pereira@gmail.com", compra:[{id_compra:9, monto:250, productos:["microondas","celular"]}]})
+
+db.usuarios.insertOne({_id:6, nombre:"Facundo", apellido:"Gomez", edad:26, mail:"facundo.gomez@gmail.com", compra:[{id_compra:10, monto:350, productos:["Lavandina","Yogurt","Manzana","Trapo de Piso"]}]})
+
+db.usuarios.find({nombre:"Agustin"})
+db.usuarios.find({nombre:"Facundo"})
+
+
+Ejercicio 2:
+db.usuarios.find({edad:{$gt: 25}},{nombre:1, apellido:1})
+
+
+Ejercicio 3:
+db.usuarios.find({compras:{$size: 2}},{_id:1, mail:1})
+
+
+Ejercicio 4:
+db.usuarios.find({compras:{$exists: true}},{"compras.monto":1})
+
+
+Ejercicio 5:
+db.usuarios.find({"compras.productos.5":{$exists: true}},{"compras.id_compra":1})
+
+
+Ejercicio 6:
+db.usuarios.find({"compras.id_compra":{$eq: 1}},{"compras.productos":1})
+
+
+Ejercicio 7:
+db.usuarios.updateOne({_id:2}, {$push: {compras: {id_compra:10,productos:["Televisor"]}}})
+
+
+Ejercicio 8:
+db.usuarios.updateOne({nombre:"Lucas", apellido:"Martínez"}, {$set:{mail:"lucas.m@gmail.com"}})
+
+
+Ejercicio 9:
+db.usuarios.find({},{"compras.id_compra":1, "compras.monto":1}).sort({"compras.monto":-1}).limit(3)
+
+
+Ejercicio 10:
+db.usuarios.find({"compras.productos": {$ne: "televisor"}},{nombre:1, mail:1}).sort({edad:-1})
+
+
+Ejercicio 11:
+db.usuarios.find({"compras.productos": "laptop"},{nombre:1})
+
+
+Ejercicio 12:
+db.usuarios.find({"compras.monto": {$gt: 250}, "compras.productos": "televisor"})
+
