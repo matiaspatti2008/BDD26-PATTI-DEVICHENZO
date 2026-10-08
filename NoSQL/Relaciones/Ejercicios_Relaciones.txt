@@ -1,0 +1,80 @@
+Ejercicio 1:
+{
+  "_id": 1,
+  "nombre": "Matias",
+  "apellido": "Patti",
+  "email": "matias@gmail.com",
+  "fecha_nacimiento": "2008-09-04",
+  "puesto": "Marketing",
+  "carnet": {
+    "num_serie": 1,
+    "fecha_emision": "2026-04-25",
+    "fecha_vencimiento": "2031-04-25"
+  }
+}
+
+
+Ejercicio 2:
+{
+  "_id": 1,
+  "nombre": "Lucca",
+  "apellido": "Rossatti",
+  "email": "lucca@gmail.com",
+  "clave": "lucca123",
+  "direcciones": [
+    {
+      "calle": "Mendoza 1234",
+      "ciudad": "CABA",
+      "codigo_postal": 3344,
+      "provincia": "Buenos Aires"
+    },
+    {
+      "calle": "Carapachai 5678",
+      "ciudad": "CABA",
+      "codigo_postal": 3350,
+      "provincia": "Buenos Aires"
+    }
+  ]
+}
+
+
+Ejercicio 3:
+{
+  "_id": 1,
+  "nombre": "Lucca",
+  "apellido": "Rossatti",
+  "email": "lucca@gmail.com",
+  "clave": "lucca123",
+  "direcciones": [
+    {
+      "calle": "Mendoza 1234",
+      "ciudad": "CABA",
+      "codigo_postal": 3344,
+      "provincia": "Buenos Aires"
+    },
+    {
+      "calle": "Carapachai 5678",
+      "ciudad": "CABA",
+      "codigo_postal": 3350,
+      "provincia": "Buenos Aires"
+    }
+  ],
+  "pedidos": [
+    {
+      "fecha": "2026-10-08",
+      "productos": [
+        {
+          "id": 1,
+          "cantidad": 4,
+          "precio": 200
+        },
+        {
+          "id": 5,
+          "cantidad": 2,
+          "precio": 700
+        }
+      ],
+      "monto_total": 1200
+    }
+  ]
+}
