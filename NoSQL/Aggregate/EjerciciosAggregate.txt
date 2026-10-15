@@ -1,0 +1,13 @@
+1)
+db.clientes.aggregate([{$group:{"_id": null, "edad_promedio":{$avg: "$edad"}}}])
+
+
+2)
+db.clientes.aggregate([
+  {$unwind: "$compras"}, {$unwind: "$compras.productos"},
+  {$group: {
+      _id: "$compras.productos.id_producto",
+      total_unidades_ordenadas: {$sum: "$compras.productos.cantidad"}
+   }
+  }
+])
