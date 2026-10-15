@@ -1,0 +1,21 @@
+[{
+  "_id": 1,
+  "nombre": "Lucca",
+  "apellido": "Rossatti",
+  "email": "lucca@gmail.com",
+  "clave": "lucca123",
+  "direcciones": [
+    {
+      "calle": "Mendoza 1234",
+      "ciudad": "CABA",
+      "codigo_postal": 3344,
+      "provincia": "Buenos Aires"
+    },
+    {
+      "calle": "Carapachai 5678",
+      "ciudad": "CABA",
+      "codigo_postal": 3350,
+      "provincia": "Buenos Aires"
+    }
+  ]
+}]

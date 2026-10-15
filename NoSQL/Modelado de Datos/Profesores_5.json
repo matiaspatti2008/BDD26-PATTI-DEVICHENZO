@@ -1,0 +1,27 @@
+[{
+  "_id": {
+    "$oid": "6ad0c9352008804843ecdb23"
+  },
+  "id_profesor": 1,
+  "nombre": "Agustin",
+  "apellido": "Valledor",
+  "email": "agustin@universidad.edu",
+  "titulo": "Licenciado en Matemática",
+  "materias": [
+    101,
+    102
+  ]
+},
+{
+  "_id": {
+    "$oid": "6ad0c98c2008804843ecdb25"
+  },
+  "id_profesor": 2,
+  "nombre": "Facundo",
+  "apellido": "de Vichenzo",
+  "email": "facundo@universidad.edu",
+  "titulo": "Doctor en Ciencias Físicas",
+  "materias": [
+    101
+  ]
+}]

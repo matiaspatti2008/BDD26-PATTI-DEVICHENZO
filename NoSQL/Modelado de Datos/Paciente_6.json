@@ -1,0 +1,29 @@
+[{
+  "_id": {
+    "$oid": "6ad0caed2008804843ecdb28"
+  },
+  "dni": "35890123",
+  "nombre": "Juan",
+  "apellido": "Marinelli",
+  "fecha_nacimiento": "2008-11-12",
+  "telefono": "+54 11 4567-8901",
+  "historia_clinica": {
+    "numero_historia": 2463,
+    "fecha_inicio": "2021-03-15",
+    "observaciones_generales": "Paciente hipertenso. Alérgico a los gatos.",
+    "registros_medicos": [
+      {
+        "fecha_consulta": "2021-03-15",
+        "medico": "Dr. Carlos Gómez",
+        "diagnostico": "Chequeo general y control de presión arterial.",
+        "tratamiento": "Continuar con medicación habitual y reducir sodio."
+      },
+      {
+        "fecha_consulta": "2024-05-22",
+        "medico": "Dra. Laura Martínez",
+        "diagnostico": "Cuadro febril leve y congestión nasal.",
+        "tratamiento": "Paracetamol 500mg cada 8hs por 3 días y reposo."
+      }
+    ]
+  }
+}]

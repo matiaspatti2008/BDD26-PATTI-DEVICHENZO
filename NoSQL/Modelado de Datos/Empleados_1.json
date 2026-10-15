@@ -1,0 +1,13 @@
+[{
+  "_id": 1,
+  "nombre": "Matias",
+  "apellido": "Patti",
+  "email": "matias@gmail.com",
+  "fecha_nacimiento": "2008-09-04",
+  "puesto": "Marketing",
+  "carnet": {
+    "num_serie": 1234,
+    "fecha_emision": "2026-04-25",
+    "fecha_vencimiento": "2031-04-25"
+  }
+}]

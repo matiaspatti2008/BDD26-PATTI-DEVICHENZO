@@ -1,0 +1,23 @@
+[{
+  "_id": {
+    "$oid": "6ad0c71e2008804843ecdb1f"
+  },
+  "codigo_materia": 101,
+  "nombre": "Álgebra Lineal",
+  "horas_semanales": 6,
+  "profesores_ids": [
+    1,
+    2
+  ]
+},
+{
+  "_id": {
+    "$oid": "6ad0c7882008804843ecdb20"
+  },
+  "codigo_materia": 102,
+  "nombre": "Cálculo I",
+  "horas_semanales": 8,
+  "profesores_ids": [
+    1
+  ]
+}]

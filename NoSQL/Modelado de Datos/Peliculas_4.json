@@ -1,0 +1,39 @@
+[{
+  "_id": 1,
+  "titulo": "Pelicula 1",
+  "anio": 1977,
+  "genero": "Policial / Drama",
+  "duracion_minutos": 114,
+  "actores_ids": [
+    {
+      "id_actor": 1,
+      "nombre": "Facundo",
+      "apellido": "Feistel",
+      "fecha_nacimiento": "1957-01-16",
+      "nacionalidad": "Argentina"
+    },
+    {
+      "id_actor": 2,
+      "nombre": "Thiago",
+      "apellido": "Andreoli",
+      "fecha_nacimiento": "1968-02-27",
+      "nacionalidad": "Argentina"
+    }
+  ]
+},
+{
+  "_id": 2,
+  "titulo": "Pelicula 2",
+  "anio": 2000,
+  "genero": "Accion",
+  "duracion_minutos": 128,
+  "actores_ids": [
+    {
+      "id_actor": 2,
+      "nombre": "Thiago",
+      "apellido": "Andreoli",
+      "fecha_nacimiento": "1968-02-27",
+      "nacionalidad": "Argentina"
+    }
+  ]
+}]
